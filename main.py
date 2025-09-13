@@ -1,21 +1,24 @@
+import os
+import asyncio
+
 from twitchAPI.helper import first
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticationStorageHelper
-from twitchAPI.object.eventsub import ChannelFollowEvent
+from twitchAPI.object.eventsub import ChatMessage
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.type import AuthScope
-import asyncio
 
-#DoggieLogger App Credentials
-APP_ID = 'j3de8onll8oidlbvsjlpk8etzutzl3'
-APP_SECRET = 'l0714wi2e3omdniacgvi22vda01ezl'
-TARGET_SCOPES = [AuthScope.MODERATOR_READ_FOLLOWERS]
+# DoggieLogger App Credentials saved in local environment variables
+APP_ID = os.getenv("TWITCH_APP_ID")
+APP_SECRET = os.getenv("TWITCH_APP_SECRET")
+TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
+BROADCASTER = 'wendilunar'
+BROADCASTER = 'TheBurntPeanut'
+LISTENER = 'deepsdoggie'
 
-
-async def on_follow(data: ChannelFollowEvent):
-    # our event happened, lets do things with the data we got!
-    print(f'{data.event.user_name} now follows {data.event.broadcaster_user_name}!')
-
+async def on_message(msg: ChatMessage):
+    message_info = msg.event.message
+    print(f'{msg.event.chatter_user_name}: {msg.event.message.text}')
 
 async def run():
     # create the api instance and get user auth either from storage or website
@@ -23,8 +26,9 @@ async def run():
     helper = UserAuthenticationStorageHelper(twitch, TARGET_SCOPES)
     await helper.bind()
 
-    # get the currently logged in user
-    user = await first(twitch.get_users())
+    # get the specified users
+    list_user = await first(twitch.get_users(logins=LISTENER))
+    broad_user = await first(twitch.get_users(logins=BROADCASTER))
 
     # create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
@@ -33,18 +37,24 @@ async def run():
     # the given function (in this example on_follow) will be called every time this event is triggered
     # the broadcaster is a moderator in their own channel by default so specifying both as the same works in this example
     # We have to subscribe to the first topic within 10 seconds of eventsub.start() to not be disconnected.
-    await eventsub.listen_channel_follow_v2(user.id, user.id, on_follow)
+
+    # Listen to chat messages (broadcast_user_id, user_id, callback)
+    await eventsub.listen_channel_chat_message(broad_user.id, list_user.id, on_message)
 
     # eventsub will run in its own process
     # so lets just wait for user input before shutting it all down again
-    try:
-        input('press Enter to shut down...')
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # stopping both eventsub as well as gracefully closing the connection to the API
-        await eventsub.stop()
-        await twitch.close()
 
+    while True:
+        try:
+            print('Type "exit" to quit')
+            user_in = input()
+            if 'exit' in user_in:
+                break
+        except KeyboardInterrupt:
+            break
 
-asyncio.run(run())
+    await eventsub.stop()
+    await twitch.close()
+
+if __name__ == '__main__':
+    asyncio.run(run())
