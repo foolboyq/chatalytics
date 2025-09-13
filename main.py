@@ -15,7 +15,6 @@ APP_ID = os.getenv("TWITCH_APP_ID")
 APP_SECRET = os.getenv("TWITCH_APP_SECRET")
 TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
 BROADCASTER = 'wendilunar'
-BROADCASTER = 'AustinShow'
 LISTENER = 'deepsdoggie'
 
 async def run():
@@ -30,12 +29,14 @@ async def run():
 
     # Get broadcast channel emotes
     provider_list = ['BTTV', 'FFZ', '7TV']
-    emotes = EmoteList(provider_list, broad_user.id)
-    twitch_emotes = await twitch.get_channel_emotes(broad_user.id)
-    emotes.add_twitch_emotes(twitch_emotes)
+    emote_list = EmoteList(provider_list, broad_user.id)
+    twitch_channel_emotes = await twitch.get_channel_emotes(broad_user.id)
+    twitch_global_emotes = await twitch.get_global_emotes()
+    emote_list.add_twitch_emotes(twitch_channel_emotes)
+    emote_list.add_twitch_emotes(twitch_global_emotes)
 
     # get class to handle events
-    handler = EventHandler(list(emotes.emote_list.keys()))
+    handler = EventHandler(emote_list.emote_list)
 
     # Create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
@@ -63,16 +64,21 @@ async def run():
     sorted_dict_text = dict(sorted(handler.chat_text.items(), key=lambda item: item[1], reverse=True))
     sorted_dict_emotes = dict(sorted(handler.chat_emotes.items(), key=lambda item: item[1], reverse=True))
 
+    common_words = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'you', 'was', 'for', 'on',
+                    'are', 'as', 'with']
+    for key in common_words:
+        sorted_dict_text.pop(key, None)
+
     # print out top results
     print('\n\nTop words:')
     for idx, word in enumerate(sorted_dict_text):
-        print(f'{word}: {sorted_dict_text[word]}')
+        print(f'{word} - {sorted_dict_text[word]}')
         if idx > 4:
             break
 
     print('\n\nTop emotes:')
     for idx, emote in enumerate(sorted_dict_emotes):
-        print(f'{emote}: {sorted_dict_emotes[emote]}')
+        print(f'{emote} - {sorted_dict_emotes[emote]}')
         if idx > 4:
             break
 
