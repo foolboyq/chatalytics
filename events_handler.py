@@ -2,7 +2,8 @@ from twitchAPI.object.eventsub import ChannelChatMessageEvent
 from analytics_handler import message_analysis
 
 class EventHandler:
-    def __init__(self):
+    def __init__(self, emote_names):
+        self.emote_names = emote_names
         self.num_events = 0
         self.chat_text = {}
         self.chat_emotes = {}
@@ -11,5 +12,5 @@ class EventHandler:
         self.num_events += 1
         chat_msg = msg.event.message
         msg_user = msg.event.chatter_user_name
-        message_analysis(chat_msg, self.chat_text, self.chat_emotes)
+        message_analysis(chat_msg, self.chat_text, self.chat_emotes, self.emote_names)
         print(f'{msg_user}: {chat_msg.text}')

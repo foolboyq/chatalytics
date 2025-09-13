@@ -1,19 +1,10 @@
 import requests
 
-
-class EmoteUrl:
-    def __init__(self, size, url):
-        self.size = size
-        self.url = url
-
-    def to_dict(self):
-       return dict(size=self.size, url=self.url)
-
 class Emote:
     def __init__(self, code, provider):
         self.code = code
         self.provider = provider
-        self.urls = []
+        self.urls = {}
 
     def to_dict(self):
         return dict(
@@ -22,12 +13,9 @@ class Emote:
             urls=[u.to_dict() for u in self.urls]
         )
 
-    def add_url(self, size, url):
-        self.urls.append(EmoteUrl(size, url))
-
 class EmoteList:
     def __init__(self, provider_list, channel_id):
-        self.emote_list = []
+        self.emote_list = {}
 
         for provider in provider_list:
             if provider == 'BTTV':
@@ -49,8 +37,8 @@ class EmoteList:
                 }
                 url = twitch_emotes.template.replace('{{', '{').replace('}}', '}').format(**values)
                 size = f"{int(float(scale))}x"
-                emote.add_url(size, url)
-            self.emote_list.append(emote)
+                emote.urls[size] = url
+            self.emote_list[emote.code] = emote
 
     def get_bttv_channel_emotes(self, channel_id):
         url = f"https://api.betterttv.net/3/cached/users/twitch/{channel_id}"
@@ -60,8 +48,8 @@ class EmoteList:
             emote = Emote(code=e['code'], provider='BTTV')
             for size in ['1x', '2x', '3x']:
                 url = f"https://cdn.betterttv.net/emote/{e['id']}/{size}"
-                emote.add_url(size, url)
-            self.emote_list.append(emote)
+                emote.urls[size] = url
+            self.emote_list[emote.code] = emote
 
     def get_ffz_channel_emotes(self, channel_id):
         url = f"https://api.frankerfacez.com/v1/room/id/{channel_id}"
@@ -73,8 +61,8 @@ class EmoteList:
             for u in (e.get('animated') or e['urls']).items():
                 size = f'{u[0]}x'
                 url = u[1]
-                emote.add_url(size, url)
-            self.emote_list.append(emote)
+                emote.urls[size] = url
+            self.emote_list[emote.code] = emote
 
     def get_7tv_channel_emotes(self, channel_id):
         url = f"https://7tv.io/v3/users/twitch/{channel_id}"
@@ -89,8 +77,8 @@ class EmoteList:
                     continue
                 size = file['name'].replace('.webp', '')
                 url = f"{template}/{file['name']}"
-                emote.add_url(size, url)
-            self.emote_list.append(emote)
+                emote.urls[size] = url
+            self.emote_list[emote.code] = emote
 
 def run_request(url):
     response = requests.get(url)

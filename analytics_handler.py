@@ -1,6 +1,6 @@
 from twitchAPI.object.eventsub import ChatMessage
 
-def message_analysis(msg: ChatMessage, words, emotes):
+def message_analysis(msg: ChatMessage, words, emotes, emote_names):
     for fragment in msg.fragments:
         if fragment.type == 'text':
             message_split = fragment.text.split(' ')

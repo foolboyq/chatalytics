@@ -30,17 +30,16 @@ async def run():
 
     # Get broadcast channel emotes
     provider_list = ['BTTV', 'FFZ', '7TV']
-    emote_list = EmoteList(provider_list, broad_user.id)
+    emotes = EmoteList(provider_list, broad_user.id)
     twitch_emotes = await twitch.get_channel_emotes(broad_user.id)
-    emote_list.add_twitch_emotes(twitch_emotes)
+    emotes.add_twitch_emotes(twitch_emotes)
 
     # get class to handle events
-    handler = EventHandler()
+    handler = EventHandler(list(emotes.emote_list.keys()))
 
     # Create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()
-
     # We have to subscribe to the first topic within 10 seconds of eventsub.start() to not be disconnected.
     # Event subscription documentation:
     # https://pytwitchapi.dev/en/stable/modules/twitchAPI.eventsub.websocket.html
