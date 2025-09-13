@@ -8,6 +8,7 @@ from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.type import AuthScope
 
 from events_handler import EventHandler
+from emotes import EmoteList
 
 # DoggieLogger App Credentials saved in local environment variables
 APP_ID = os.getenv("TWITCH_APP_ID")
@@ -33,6 +34,12 @@ async def run():
     # Create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()
+
+    # Get channel emotes
+    provider_list = ['BTTV', 'FFZ', '7TV']
+    emote_list = EmoteList(provider_list, broad_user.id)
+    twitch_emotes = await twitch.get_channel_emotes(broad_user.id)
+    emote_list.add_twitch_emotes(twitch_emotes)
 
     # We have to subscribe to the first topic within 10 seconds of eventsub.start() to not be disconnected.
     # Event subscription documentation:
