@@ -4,21 +4,18 @@ import asyncio
 from twitchAPI.helper import first
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticationStorageHelper
-from twitchAPI.object.eventsub import ChatMessage
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.type import AuthScope
+
+from events_handler import EventHandler
 
 # DoggieLogger App Credentials saved in local environment variables
 APP_ID = os.getenv("TWITCH_APP_ID")
 APP_SECRET = os.getenv("TWITCH_APP_SECRET")
 TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
 BROADCASTER = 'wendilunar'
-BROADCASTER = 'TheBurntPeanut'
+BROADCASTER = 'VNCEOfficial'
 LISTENER = 'deepsdoggie'
-
-async def on_message(msg: ChatMessage):
-    message_info = msg.event.message
-    print(f'{msg.event.chatter_user_name}: {msg.event.message.text}')
 
 async def run():
     # create the api instance and get user auth either from storage or website
@@ -30,6 +27,9 @@ async def run():
     list_user = await first(twitch.get_users(logins=LISTENER))
     broad_user = await first(twitch.get_users(logins=BROADCASTER))
 
+    # get class to handle events
+    handler = EventHandler()
+
     # create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()
@@ -39,7 +39,7 @@ async def run():
     # We have to subscribe to the first topic within 10 seconds of eventsub.start() to not be disconnected.
 
     # Listen to chat messages (broadcast_user_id, user_id, callback)
-    await eventsub.listen_channel_chat_message(broad_user.id, list_user.id, on_message)
+    await eventsub.listen_channel_chat_message(broad_user.id, list_user.id, handler.on_message)
 
     # eventsub will run in its own process
     # so lets just wait for user input before shutting it all down again
@@ -55,6 +55,11 @@ async def run():
 
     await eventsub.stop()
     await twitch.close()
+
+    sorted_dict_desc = dict(sorted(handler.chat_text.items(), key=lambda item: item[1], reverse=True))
+
+    for word in sorted_dict_desc:
+        print(f'{word}: {sorted_dict_desc[word]}')
 
 if __name__ == '__main__':
     asyncio.run(run())
