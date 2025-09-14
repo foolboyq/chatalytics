@@ -65,7 +65,7 @@ async def run():
     sorted_dict_emotes = dict(sorted(handler.chat_emotes.items(), key=lambda item: item[1], reverse=True))
 
     common_words = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'you', 'was', 'for', 'on',
-                    'are', 'as', 'with']
+                    'are', 'as', 'with', 'so', 'did', 'he', 'she', 'is', 'were', 'your']
     for key in common_words:
         sorted_dict_text.pop(key, None)
 
