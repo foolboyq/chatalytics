@@ -73,13 +73,13 @@ async def run():
     print('\n\nTop words:')
     for idx, word in enumerate(sorted_dict_text):
         print(f'{word} - {sorted_dict_text[word]}')
-        if idx > 4:
+        if idx >= 4:
             break
 
     print('\n\nTop emotes:')
     for idx, emote in enumerate(sorted_dict_emotes):
         print(f'{emote} - {sorted_dict_emotes[emote]}')
-        if idx > 4:
+        if idx >= 4:
             break
 
     print(f'\n\nTotal messages captured: {handler.num_events}')
