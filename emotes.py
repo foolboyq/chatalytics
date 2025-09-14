@@ -2,6 +2,10 @@ import requests
 
 class Emote:
     def __init__(self, code, provider):
+        """
+        :param code: name of emote (str)
+        :param provider: name of provider (str)
+        """
         self.code = code
         self.provider = provider
         self.urls = {}
@@ -15,6 +19,10 @@ class Emote:
 
 class EmoteList:
     def __init__(self, provider_list, channel_id):
+        """
+        :param provider_list: list of strings for providers to pull emotes from [list(str)]
+        :param channel_id: id of channel to pull emotes from (str)
+        """
         self.emote_list = {}
 
         for provider in provider_list:
@@ -26,6 +34,9 @@ class EmoteList:
                 self.get_7tv_channel_emotes(channel_id)
 
     def add_twitch_emotes(self, twitch_emotes):
+        """
+        :param twitch_emotes: emotes list to add twitch emotes to {emote_name (str): Emote (class)}
+        """
         for e in twitch_emotes:
             emote = Emote(code=e.name, provider='TWITCH')
             for scale in e.scale:
@@ -41,6 +52,9 @@ class EmoteList:
             self.emote_list[emote.code] = emote
 
     def get_bttv_channel_emotes(self, channel_id):
+        """
+        :param channel_id: id of channel to pull emotes from (str)
+        """
         emotes = []
 
         url = f"https://api.betterttv.net/3/cached/users/twitch/{channel_id}"
@@ -59,6 +73,9 @@ class EmoteList:
             self.emote_list[emote.code] = emote
 
     def get_ffz_channel_emotes(self, channel_id):
+        """
+        :param channel_id: id of channel to pull emotes from (str)
+        """
         emotes = []
 
         url = f"https://api.frankerfacez.com/v1/room/id/{channel_id}"
@@ -79,6 +96,9 @@ class EmoteList:
             self.emote_list[emote.code] = emote
 
     def get_7tv_channel_emotes(self, channel_id):
+        """
+        :param channel_id: id of channel to pull emotes from (str)
+        """
         emotes = []
         url = f"https://7tv.io/v3/users/twitch/{channel_id}"
         data = run_request(url)
@@ -101,6 +121,9 @@ class EmoteList:
             self.emote_list[emote.code] = emote
 
 def run_request(url):
+    """
+    :param url: url to request data from
+    """
     response = requests.get(url)
     response.raise_for_status()  # Raise an exception for bad status codes
     return response.json()
