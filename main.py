@@ -8,13 +8,13 @@ from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.type import AuthScope
 
 from events_handler import EventHandler
+from emotes import EmoteList
 
 # DoggieLogger App Credentials saved in local environment variables
 APP_ID = os.getenv("TWITCH_APP_ID")
 APP_SECRET = os.getenv("TWITCH_APP_SECRET")
 TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
 BROADCASTER = 'wendilunar'
-BROADCASTER = 'VNCEOfficial'
 LISTENER = 'deepsdoggie'
 
 async def run():
@@ -27,23 +27,27 @@ async def run():
     list_user = await first(twitch.get_users(logins=LISTENER))
     broad_user = await first(twitch.get_users(logins=BROADCASTER))
 
-    # get class to handle events
-    handler = EventHandler()
+    # Get broadcast channel emotes
+    provider_list = ['BTTV', 'FFZ', '7TV']
+    emote_list = EmoteList(provider_list, broad_user.id)
+    twitch_channel_emotes = await twitch.get_channel_emotes(broad_user.id)
+    twitch_global_emotes = await twitch.get_global_emotes()
+    emote_list.add_twitch_emotes(twitch_channel_emotes)
+    emote_list.add_twitch_emotes(twitch_global_emotes)
 
-    # create eventsub websocket instance and start the client.
+    # get class to handle events
+    handler = EventHandler(emote_list.emote_list)
+
+    # Create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()
-    # subscribing to the desired eventsub hook for our user
-    # the given function (in this example on_follow) will be called every time this event is triggered
-    # the broadcaster is a moderator in their own channel by default so specifying both as the same works in this example
     # We have to subscribe to the first topic within 10 seconds of eventsub.start() to not be disconnected.
-
+    # Event subscription documentation:
+    # https://pytwitchapi.dev/en/stable/modules/twitchAPI.eventsub.websocket.html
     # Listen to chat messages (broadcast_user_id, user_id, callback)
     await eventsub.listen_channel_chat_message(broad_user.id, list_user.id, handler.on_message)
 
-    # eventsub will run in its own process
-    # so lets just wait for user input before shutting it all down again
-
+    # Wait for input to match exit criteria before quitting
     while True:
         try:
             print('Type "exit" to quit')
@@ -56,10 +60,30 @@ async def run():
     await eventsub.stop()
     await twitch.close()
 
-    sorted_dict_desc = dict(sorted(handler.chat_text.items(), key=lambda item: item[1], reverse=True))
+    # sort data dicts by value
+    sorted_dict_text = dict(sorted(handler.chat_text.items(), key=lambda item: item[1], reverse=True))
+    sorted_dict_emotes = dict(sorted(handler.chat_emotes.items(), key=lambda item: item[1], reverse=True))
 
-    for word in sorted_dict_desc:
-        print(f'{word}: {sorted_dict_desc[word]}')
+    common_words = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'you', 'was', 'for', 'on',
+                    'are', 'as', 'with', 'so', 'did', 'he', 'she', 'is', 'were', 'your']
+    for key in common_words:
+        sorted_dict_text.pop(key, None)
+
+    # print out top results
+    print('\n\nTop words:')
+    for idx, word in enumerate(sorted_dict_text):
+        print(f'{word} - {sorted_dict_text[word]}')
+        if idx > 4:
+            break
+
+    print('\n\nTop emotes:')
+    for idx, emote in enumerate(sorted_dict_emotes):
+        print(f'{emote} - {sorted_dict_emotes[emote]}')
+        if idx > 4:
+            break
+
+    print(f'\n\nTotal messages captured: {handler.num_events}')
+
 
 if __name__ == '__main__':
     asyncio.run(run())
