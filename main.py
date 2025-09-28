@@ -10,11 +10,11 @@ from twitchAPI.type import AuthScope
 from events_handler import EventHandler
 from emotes import EmoteList
 
-# DoggieLogger App Credentials saved in local environment variables
+# DoggieLogger Twitch App Credentials saved in local environment variables
 APP_ID = os.getenv("TWITCH_APP_ID")
 APP_SECRET = os.getenv("TWITCH_APP_SECRET")
 TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
-BROADCASTER = 'wendilunar'
+BROADCASTER = 'TheBurntPeanut'
 LISTENER = 'deepsdoggie'
 
 async def run():
