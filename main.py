@@ -1,4 +1,5 @@
 import os
+import time
 import asyncio
 
 from twitchAPI.helper import first
@@ -10,11 +11,11 @@ from twitchAPI.type import AuthScope
 from events_handler import EventHandler
 from emotes import EmoteList
 
-# DoggieLogger App Credentials saved in local environment variables
+# DoggieLogger Twitch App Credentials saved in local environment variables
 APP_ID = os.getenv("TWITCH_APP_ID")
 APP_SECRET = os.getenv("TWITCH_APP_SECRET")
 TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
-BROADCASTER = 'wendilunar'
+BROADCASTER = 'TheBurntPeanut'
 LISTENER = 'deepsdoggie'
 
 async def run():
@@ -45,6 +46,7 @@ async def run():
     # Event subscription documentation:
     # https://pytwitchapi.dev/en/stable/modules/twitchAPI.eventsub.websocket.html
     # Listen to chat messages (broadcast_user_id, user_id, callback)
+    start_capture = time.time()
     await eventsub.listen_channel_chat_message(broad_user.id, list_user.id, handler.on_message)
 
     # Wait for input to match exit criteria before quitting
@@ -58,6 +60,7 @@ async def run():
             break
 
     await eventsub.stop()
+    stop_capture = time.time()
     await twitch.close()
 
     # sort data dicts by value
@@ -83,6 +86,7 @@ async def run():
             break
 
     print(f'\n\nTotal messages captured: {handler.num_events}')
+    print(f'Total time capturing messages: {(stop_capture - start_capture) / 60:.1f} minutes')
 
 
 if __name__ == '__main__':

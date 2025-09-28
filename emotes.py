@@ -59,8 +59,9 @@ class EmoteList:
 
         url = f"https://api.betterttv.net/3/cached/users/twitch/{channel_id}"
         data = run_request(url)
-        emotes.extend(data['channelEmotes'])
-        emotes.extend(data['sharedEmotes'])
+        if data is not None:
+            emotes.extend(data['channelEmotes'])
+            emotes.extend(data['sharedEmotes'])
 
         global_url = 'https://api.betterttv.net/3/cached/emotes/global'
         emotes.extend(run_request(global_url))
@@ -80,7 +81,8 @@ class EmoteList:
 
         url = f"https://api.frankerfacez.com/v1/room/id/{channel_id}"
         data = run_request(url)
-        emotes.extend(data['sets'][str(data['room']['set'])]['emoticons'])
+        if data is not None:
+            emotes.extend(data['sets'][str(data['room']['set'])]['emoticons'])
 
         global_url = 'https://api.frankerfacez.com/v1/set/global'
         global_data = run_request(global_url)
@@ -102,7 +104,8 @@ class EmoteList:
         emotes = []
         url = f"https://7tv.io/v3/users/twitch/{channel_id}"
         data = run_request(url)
-        emotes.extend(data['emote_set']['emotes'])
+        if data is not None:
+            emotes.extend(data['emote_set']['emotes'])
 
         global_url = 'https://7tv.io/v3/emote-sets/global'
         data_global = run_request(global_url)
@@ -125,5 +128,7 @@ def run_request(url):
     :param url: url to request data from
     """
     response = requests.get(url)
-    response.raise_for_status()  # Raise an exception for bad status codes
-    return response.json()
+    emotes = None
+    if response.status_code == 200:
+        emotes = response.json()
+    return emotes
