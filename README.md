@@ -11,7 +11,7 @@ pip install -r requirements.txt
 ## Setup
 1. Create an application in your [Twitch Dev Console](https://dev.twitch.tv/console)
     1. Click Register Your Application
-    2. Add http://localhost:17563 to the OAth Redirect URL
+    2. Add http://localhost:17563 to the OAth Redirect URL (to run locally)
     3. Choose a category
    4. Chose confidential
    5. Click create
