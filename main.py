@@ -42,11 +42,13 @@ async def run():
     # Create eventsub websocket instance and start the client.
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()
+
     # We have to subscribe to the first topic within 10 seconds of eventsub.start() to not be disconnected.
     # Event subscription documentation:
     # https://pytwitchapi.dev/en/stable/modules/twitchAPI.eventsub.websocket.html
-    # Listen to chat messages (broadcast_user_id, user_id, callback)
+
     start_capture = time.time()
+    # Listen to chat messages (broadcast_user_id, user_id, callback)
     await eventsub.listen_channel_chat_message(broad_user.id, list_user.id, handler.on_message)
 
     # Wait for input to match exit criteria before quitting
