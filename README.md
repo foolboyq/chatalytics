@@ -30,7 +30,7 @@ Change LISTENER variably in main.py to name of twitch account with the applicati
 
 Run main file to start script. The first time you run it, you will be asked to authorize the application through Twitch.
 ```bash
-python main.py
+python __main__.py
 ```
 
 When you want to finish collecting data and show the summary, type "exit"

@@ -9,13 +9,13 @@ from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.type import AuthScope
 
 from events_handler import EventHandler
-from emotes import EmoteList
+from src.chat_analytics.data_types.emotes import EmoteList
 
 # DoggieLogger Twitch App Credentials saved in local environment variables
 APP_ID = os.getenv("TWITCH_APP_ID")
 APP_SECRET = os.getenv("TWITCH_APP_SECRET")
 TARGET_SCOPES = [AuthScope.USER_READ_CHAT]
-BROADCASTER = 'TheBurntPeanut'
+BROADCASTER = 'wendilunar'
 LISTENER = 'deepsdoggie'
 
 async def run():
@@ -87,7 +87,7 @@ async def run():
         if idx >= 4:
             break
 
-    print(f'\n\nTotal messages captured: {handler.num_events}')
+    print(f'\n\nTotal messages captured: {handler.num_messages}')
     print(f'Total time capturing messages: {(stop_capture - start_capture) / 60:.1f} minutes')
 
 
